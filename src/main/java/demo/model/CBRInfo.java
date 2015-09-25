@@ -14,8 +14,6 @@ import javax.xml.parsers.SAXParserFactory;
 import java.net.URI;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Created by ws on 26.09.15.

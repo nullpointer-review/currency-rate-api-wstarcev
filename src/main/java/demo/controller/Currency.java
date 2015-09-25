@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
  * Created by ws on 25.09.15.
  */
 @RestController
-@RequestMapping(value = "/api/rate", method = RequestMethod.GET)
+@RequestMapping(value = "currency/api/rate", method = RequestMethod.GET)
 public class Currency {
 
     @RequestMapping("/{code}")
