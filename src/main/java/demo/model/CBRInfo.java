@@ -69,7 +69,9 @@ public class CBRInfo extends DefaultHandler {
 
             case VALUE:
                 String text = new String(Arrays.copyOfRange(ch, start, start + length));
-                text = text.replace(",", ".");
+                text = text.replaceAll(",", ".");
+                text = text.replaceAll("\\s+", "");
+                text = text.replaceAll("\u00A0", "");
                 currentValue = Double.parseDouble(text);
                 break;
         }
