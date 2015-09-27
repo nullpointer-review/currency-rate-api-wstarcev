@@ -50,7 +50,6 @@ public class CBRInfo extends DefaultHandler {
         String xml = "";
         if (cache.containsKey(url)) xml = cache.get(url);
         else {
-            System.out.println(url);
             ClientHttpRequest request = new SimpleClientHttpRequestFactory().createRequest(new URI(url), HttpMethod.GET);
             InputStream stream = request.execute().getBody();
             xml = streamToString(stream);
