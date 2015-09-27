@@ -1,5 +1,6 @@
 package demo.model;
 
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -11,9 +12,12 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import java.io.*;
 import java.net.URI;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * Created by ws on 26.09.15.
@@ -28,10 +32,30 @@ public class CBRInfo extends DefaultHandler {
         this.currency = currency;
     }
 
+    private static ConcurrentHashMap<String, String> cache = new ConcurrentHashMap<>();
+
+    public static String streamToString(final InputStream inputStream) throws Exception {
+        try (
+            final BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))
+        ) {
+            return br.lines().parallel().collect(Collectors.joining("\n"));
+        } catch (final IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static Info get(Info info) throws Exception {
 
-        URI uri = new URI(BASE_URL + "?date_req=" + info.date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        ClientHttpRequest request = new SimpleClientHttpRequestFactory().createRequest(uri, HttpMethod.GET);
+        String url = BASE_URL + "?date_req=" + info.date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        String xml = "";
+        if (cache.containsKey(url)) xml = cache.get(url);
+        else {
+            System.out.println(url);
+            ClientHttpRequest request = new SimpleClientHttpRequestFactory().createRequest(new URI(url), HttpMethod.GET);
+            InputStream stream = request.execute().getBody();
+            xml = streamToString(stream);
+            cache.put(url, xml);
+        }
 
         SAXParserFactory spf = SAXParserFactory.newInstance();
         SAXParser saxParser = spf.newSAXParser();
@@ -39,7 +63,7 @@ public class CBRInfo extends DefaultHandler {
 
         CBRInfo cbr = new CBRInfo(info.code);
         reader.setContentHandler(cbr);
-        reader.parse(new InputSource(request.execute().getBody()));
+        reader.parse(new InputSource(new StringReader(xml)));
         info.rate = cbr.value;
 
         return info;
